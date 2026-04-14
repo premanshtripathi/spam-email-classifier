@@ -46,7 +46,7 @@ During testing, a formal leave application was flagged as spam due to **Dataset 
 1. Clone the git repository
 
    ```bash
-    git clone 
+    git clone https://github.com/premanshtripathi/spam-email-classifier.git
    ```
 
 2. Ensure `spam_model_lr.pkl` and `tfidf_vectorizer.pkl` are in the root directory.
