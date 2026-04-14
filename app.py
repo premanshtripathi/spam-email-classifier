@@ -42,7 +42,7 @@ st.set_page_config(page_title="Spam Classifier Pro", page_icon="🛡️")
 
 st.title("🛡️ Email Spam Classifier")
 st.markdown("""
-Welcome to the CA-2 Spam Classification Project. 
+Welcome to the Spam Email Classifier. 
 Enter the text of an email below to check if it's **Spam** or **Safe (Ham)**.
 """)
 
