@@ -2,6 +2,10 @@
 
 An end-to-end Machine Learning pipeline designed to classify emails as **Spam** or **Ham** using a classification algorithm (KNN, Logistic Regression or Naive Bayes) and Natural Language Processing (NLP).
 
+---
+### 🌐 Live Project Link: https://spam-email-classifier-project.streamlit.app/
+---
+
 ## 🚀 Overview
 
 This project transitions from basic scripts to a professional ML pipeline. It utilizes **TF-IDF Vectorization** with N-gram context and evaluates multiple classification algorithms, ultimately deploying the most robust model via **Streamlit**.
