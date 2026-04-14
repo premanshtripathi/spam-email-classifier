@@ -4,7 +4,7 @@ An end-to-end Machine Learning pipeline designed to classify emails as **Spam** 
 
 ---
 
-### 🌐 Live Project Link: <a href="https://spam-email-classifier-project.streamlit.app/" target="blank">https://spam-email-classifier-project.streamlit.app/</a>
+### 🌐 Live Project Link: <a href="https://spam-email-classifier-project.streamlit.app/" target="_blank">https://spam-email-classifier-project.streamlit.app/</a>
 
 ---
 
