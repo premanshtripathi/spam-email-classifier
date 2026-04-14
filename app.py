@@ -42,7 +42,9 @@ st.set_page_config(page_title="Spam Classifier Pro", page_icon="🛡️")
 
 st.title("🛡️ Email Spam Classifier")
 st.markdown("""
-Welcome to the Spam Email Classifier. 
+Welcome to the Spam Email Classifier.
+""")
+st.markdown("""
 Enter the text of an email below to check if it's **Spam** or **Safe (Ham)**.
 """)
 
