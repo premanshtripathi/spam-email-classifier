@@ -38,7 +38,7 @@ model, vectorizer = load_models()
 # ==========================================
 
 # Page Configuration
-st.set_page_config(page_title="Spam Classifier Pro", page_icon="🛡️")
+st.set_page_config(page_title="Spam Classifier", page_icon="🛡️")
 
 st.title("🛡️ Email Spam Classifier")
 st.markdown("""
