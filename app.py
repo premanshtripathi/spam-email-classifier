@@ -27,8 +27,8 @@ def clean_text(text):
 # Streamlit's cache decorator prevents it from reloading the file every time you click a button
 @st.cache_resource 
 def load_models():
-    model = joblib.load('spam_model_lr.pkl')
-    vectorizer = joblib.load('tfidf_vectorizer.pkl')
+    model = joblib.load('logistic_regression.pkl')
+    vectorizer = joblib.load('tfidf-vectorizer.pkl')
     return model, vectorizer
 
 model, vectorizer = load_models()
