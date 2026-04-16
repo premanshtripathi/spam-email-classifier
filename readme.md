@@ -18,7 +18,7 @@ This project transitions from basic scripts to a professional ML pipeline. It ut
 - **Hardware:** Developed on MSI Sword 16 HX (i7-13700HX / RTX 4060)
 - **Libraries:** Scikit-Learn, NLTK, Pandas, NumPy
 - **NLP Techniques:** Regex Cleaning, Lemmatization, Stop-word Removal, N-grams (1, 2)
-- **Deployment:** Streamlit Cloud / Localhost
+- **Deployment:** Streamlit Cloud
 
 ## 📊 The ML Pipeline
 
