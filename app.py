@@ -1,90 +1,87 @@
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
+import numpy as np
+if not hasattr(np, 'unicode_'):
+    np.unicode_ = np.str_
+
+
 import streamlit as st
+import torch
+import torch.nn as nn
 import joblib
-import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
+from keras_preprocessing.sequence import pad_sequences
 
-# 1. Download necessary NLTK data (Streamlit will handle this silently)
-nltk.download('stopwords', quiet=True)
-nltk.download('wordnet', quiet=True)
-nltk.download('omw-1.4', quiet=True)
+# ==========================================
+# 1. Model Architecture Define Karo (Vahi same class)
+# ==========================================
+class SpamLSTM(nn.Module):
+    def __init__(self, vocab_size, embed_dim, lstm_units):
+        super(SpamLSTM, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.lstm = nn.LSTM(embed_dim, lstm_units, batch_first=True)
+        self.fc = nn.Linear(lstm_units, 1)
+        self.sigmoid = nn.Sigmoid()
 
-# 2. Initialize our NLP tools
-lemmatizer = WordNetLemmatizer()
-stop_words = set(stopwords.words('english'))
+    def forward(self, x):
+        x = self.embedding(x)
+        _, (hidden, _) = self.lstm(x)
+        x = hidden[-1]
+        x = self.fc(x)
+        return self.sigmoid(x)
 
-# 3. The exact same cleaning function from our Jupyter Notebook
-def clean_text(text):
-    text = str(text).lower()
-    text = re.sub(r'[^a-z\s]', '', text)
-    text = text.replace('escapenumber', '')
-    words = text.split()
-    cleaned_words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words]
-    return " ".join(cleaned_words)
-
-# 4. Load the Pickled Model and Vectorizer
-# Streamlit's cache decorator prevents it from reloading the file every time you click a button
+# ==========================================
+# 2. Load the PyTorch Model & Metadata
+# ==========================================
 @st.cache_resource 
-def load_models():
-    model = joblib.load('logistic_regression.pkl')
-    vectorizer = joblib.load('tfidf-vectorizer.pkl')
-    return model, vectorizer
+def load_pytorch_artifacts():
+    # Metadata load karo (Tokenizer, max_len, etc.)
+    meta = joblib.load('model_metadata.pkl')
+    
+    # Model initialize karo
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = SpamLSTM(meta['vocab_size'], meta['embed_dim'], meta['lstm_units'])
+    
+    # Weights load karo
+    model.load_state_dict(torch.load('spam_lstm_model.pth', map_location=device))
+    model.to(device)
+    model.eval() # Evaluation mode ON!
+    
+    return model, meta, device
 
-model, vectorizer = load_models()
+model, meta, device = load_pytorch_artifacts()
 
 # ==========================================
-# 5. Streamlit User Interface (UI)
+# 3. Streamlit UI
 # ==========================================
+st.set_page_config(page_title="LSTM Spam Classifier", page_icon="🤖")
+st.title("🛡️ LSTM Email Spam Classifier")
+st.markdown("Trained on the dataset of 83k+ Rows!")
 
-# Page Configuration
-st.set_page_config(page_title="Spam Classifier", page_icon="🛡️")
+user_input = st.text_area("Paste email content here:", height=200, placeholder="Win a free gift card...")
 
-st.title("🛡️ Email Spam Classifier")
-st.markdown("""
-Welcome to the Spam Email Classifier.
-""")
-st.markdown("""
-Enter the text of an email below to check if it's **Spam** or **Safe (Ham)**.
-""")
-
-# Text input box for the user
-user_input = st.text_area("Paste email content here:", height=200, placeholder="Dear customer, you have won a free prize...")
-
-# The prediction button
 if st.button("Analyze Email", type="primary"):
     if user_input.strip() == "":
-        st.warning("Please enter some text to analyze.")
+        st.warning("Please enter some text.")
     else:
-        with st.spinner("Analyzing text using Logistic Regression..."):
+        with st.spinner("LSTM processing..."):
             
-            # Step A: Clean the raw input
-            cleaned_input = clean_text(user_input)
+            # Step A: Preprocessing (Same as training)
+            # Agar training mein NLTK cleaning ki thi, toh yahan bhi clean_text(user_input) call karein
+            sequences = meta['tokenizer'].texts_to_sequences([user_input])
+            padded = pad_sequences(sequences, maxlen=meta['max_len'])
             
-            # Step B: Convert the cleaned text into numerical vectors
-            vectorized_input = vectorizer.transform([cleaned_input])
+            # Step B: Tensor Conversion
+            tensor_input = torch.from_numpy(padded).long().to(device)
             
-            # Step C: Get the EXACT probability percentages instead of a simple 0 or 1
-            # [0] is the chance it's Ham, [1] is the chance it's Spam
-            probabilities = model.predict_proba(vectorized_input)[0]
-            spam_probability = probabilities[1]
+            # Step C: Prediction
+            with torch.no_grad(): # No gradient needed for inference
+                output = model(tensor_input)
+                spam_probability = output.item()
             
             # Display Results
             st.divider()
-            
-            # We are manually raising the bar. It must be > 75% confident to call it spam.
-            if spam_probability > 0.75:
-                st.error(f"🚨 **WARNING: SPAM DETECTED** (Confidence: {spam_probability*100:.1f}%)")
+            if spam_probability > 0.70: # 70% threshold
+                st.error(f"🚨 **SPAM DETECTED** (Confidence: {spam_probability*100:.2f}%)")
             else:
-                st.success(f"✅ **SAFE: HAM** (Spam Probability was only {spam_probability*100:.1f}%)")
-            
-
-            # # Step C: Make the prediction
-            # prediction = model.predict(vectorized_input)[0]
-            
-            # # Display Results
-            # st.divider()
-            # if prediction == 1:
-            #     st.error("🚨 **WARNING: This email is classified as SPAM.**")
-            # else:
-            #     st.success("✅ **SAFE: This email is classified as HAM (Not Spam).**")
+                st.success(f"✅ **SAFE: HAM** (Spam Probability: {spam_probability*100:.2f}%)")
